@@ -1,363 +1,320 @@
 import { useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, TrendingUp, Clock, Users, Image, Video, FileText } from "lucide-react";
+import { 
+  Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, 
+  TrendingUp, Clock, Users, Image as ImageIcon, Video, 
+  ShoppingCart, Star, Sparkles, Filter, Search
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
-const feedFilters = [
-  { id: "all", label: "Para você", icon: TrendingUp },
-  { id: "following", label: "Seguindo", icon: Users },
-  { id: "recent", label: "Recentes", icon: Clock },
-];
-
-const contentTypes = [
-  { id: "all", label: "Todos" },
-  { id: "image", label: "Imagens", icon: Image },
-  { id: "video", label: "Vídeos", icon: Video },
-  { id: "post", label: "Posts", icon: FileText },
-];
-
+// Mock Data
 const feedPosts = [
   {
     id: 1,
-    author: "visual.studio",
-    displayName: "Visual Studio",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=visual",
-    isVerified: true,
-    content: "🎨 Acabei de lançar meu novo pack de presets! 20 filtros exclusivos inspirados em filmes dos anos 80. Link na bio! #presets #lightroom #photography",
-    image: "https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=800&h=600&fit=crop",
-    likes: 1234,
-    comments: 89,
-    shares: 45,
+    author: "neon.artworks",
+    displayName: "Neon Arts",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=neon",
+    role: "Criador Verificado",
+    content: "🚀 Finalmente lançado! Meu novo pack de overlays para streamers 'Cyberpunk 2077 Vibe'. Totalmente editável no After Effects. Quem adquirir nas primeiras 24h ganha um emote exclusivo!",
+    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=600&fit=crop",
+    likes: 842,
+    comments: 56,
     time: "2h",
-    hasProduct: true,
-    productPrice: 29,
+    product: {
+      isSelling: true,
+      title: "Cyberpunk Stream Pack Vol. 1",
+      price: 45.90,
+      rating: 4.9,
+      sales: 120
+    }
   },
   {
     id: 2,
-    author: "aesir_art",
-    displayName: "Aesir Art",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=aesir",
-    isVerified: true,
-    content: "Comissão finalizada! 💜 Muito feliz com o resultado desse avatar. Obrigado pela confiança @cliente! Slots abertos para janeiro ✨",
-    image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&h=600&fit=crop",
-    likes: 2567,
-    comments: 156,
-    shares: 78,
-    time: "4h",
-    hasProduct: true,
-    productPrice: 65,
+    author: "dev.master",
+    displayName: "Code Wizard",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=wizard",
+    role: "Dev",
+    content: "Dica rápida de CSS: Como criar esse efeito de brilho suave (glow) apenas com box-shadow. Salva pra não esquecer! ✨ #css #frontend #tips",
+    image: null, // Texto puro
+    likes: 1205,
+    comments: 89,
+    time: "5h",
+    product: {
+      isSelling: false
+    }
   },
   {
     id: 3,
-    author: "editor.master",
-    displayName: "Editor Master",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=editor",
-    isVerified: true,
-    content: "🎬 Tutorial novo no ar! Aprenda a fazer transições cinematográficas no Premiere Pro. Link do curso completo nos comentários!",
-    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&h=600&fit=crop",
-    likes: 3421,
-    comments: 234,
-    shares: 156,
-    time: "6h",
-    hasProduct: true,
-    productPrice: 149,
-  },
-  {
-    id: 4,
-    author: "streamlabs.pro",
-    displayName: "StreamLabs Pro",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=stream",
-    isVerified: false,
-    content: "Novo overlay pack disponível! 🎮 Perfeito para streamers de Valorant. Animações suaves e design clean. Quem curtiu?",
-    image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&h=600&fit=crop",
-    likes: 876,
-    comments: 67,
-    shares: 34,
-    time: "8h",
-    hasProduct: true,
-    productPrice: 35,
-  },
-  {
-    id: 5,
-    author: "design.hub",
-    displayName: "Design Hub",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=design",
-    isVerified: true,
-    content: "Dica do dia: Consistência visual é tudo! 📱 Seus posts precisam ter uma identidade. Confira nosso template kit com 50+ designs prontos!",
-    image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=600&fit=crop",
-    likes: 1890,
-    comments: 123,
-    shares: 89,
-    time: "12h",
-    hasProduct: true,
-    productPrice: 45,
-  },
-  {
-    id: 6,
-    author: "cine.looks",
-    displayName: "Cine Looks",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=cine",
-    isVerified: false,
-    content: "Before & After usando nosso LUT 'Golden Hour' 🌅 Transforme seus vídeos em obras cinematográficas!",
-    image: "https://images.unsplash.com/photo-1536240478700-b869070f9279?w=800&h=600&fit=crop",
-    likes: 654,
-    comments: 45,
-    shares: 23,
+    author: "beat.maker_pro",
+    displayName: "Beat Maker Pro",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=beat",
+    role: "Músico",
+    content: "Acabei de subir 10 novos beats de Lo-Fi sem copyright para vocês usarem em vídeos e streams. 🎧☕️",
+    image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&h=600&fit=crop",
+    likes: 2300,
+    comments: 142,
     time: "1d",
-    hasProduct: true,
-    productPrice: 25,
-  },
+    product: {
+      isSelling: true,
+      title: "Lo-Fi Chill Beats Pack (No Copyright)",
+      price: 29.90,
+      rating: 5.0,
+      sales: 450
+    }
+  }
 ];
 
-const trendingTopics = [
-  { tag: "#PresetsPro", posts: "12.5K" },
-  { tag: "#DigitalArt", posts: "8.3K" },
-  { tag: "#StreamerLife", posts: "6.7K" },
-  { tag: "#Templates", posts: "5.2K" },
-  { tag: "#VideoEditing", posts: "4.8K" },
-];
-
-const suggestedCreators = [
-  { name: "pixel.art", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=pixel", followers: "25K" },
-  { name: "motion.design", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=motion", followers: "18K" },
-  { name: "photo.master", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=photo", followers: "32K" },
-];
+const trendingTags = ["#StreamPacks", "#VtuberAssets", "#LoFiBeats", "#Fanart", "#TechSetup"];
 
 const Feed = () => {
-  const [selectedFilter, setSelectedFilter] = useState("all");
-  const [selectedType, setSelectedType] = useState("all");
   const [likedPosts, setLikedPosts] = useState<number[]>([]);
-  const [savedPosts, setSavedPosts] = useState<number[]>([]);
 
-  const toggleLike = (postId: number) => {
+  const toggleLike = (id: number) => {
     setLikedPosts(prev => 
-      prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId]
-    );
-  };
-
-  const toggleSave = (postId: number) => {
-    setSavedPosts(prev => 
-      prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId]
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
     );
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-sans">
       <Navbar />
-      <main className="pt-24 pb-20">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-4 gap-8">
-            {/* Sidebar Left - Filters */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-24 space-y-6">
-                {/* Feed Filters */}
-                <div className="bg-card rounded-2xl border border-border p-4">
-                  <h3 className="font-semibold text-foreground mb-4">Feed</h3>
-                  <div className="space-y-2">
-                    {feedFilters.map((filter) => (
-                      <button
-                        key={filter.id}
-                        onClick={() => setSelectedFilter(filter.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
-                          selectedFilter === filter.id
-                            ? "bg-primary text-primary-foreground"
-                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        }`}
-                      >
-                        <filter.icon className="w-5 h-5" />
-                        {filter.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+      
+      <main className="container mx-auto px-4 pt-24 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          {/* --- Sidebar Esquerda (Navegação) --- */}
+          <aside className="hidden lg:block lg:col-span-3">
+            <div className="sticky top-24 space-y-6">
+              <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm">
+                <CardContent className="p-4 space-y-2">
+                  <Button variant="ghost" className="w-full justify-start text-lg font-medium hover:bg-primary/10 hover:text-primary">
+                    <TrendingUp className="mr-3 h-5 w-5" /> Feed Principal
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start text-lg font-medium hover:bg-primary/10 hover:text-primary">
+                    <ShoppingCart className="mr-3 h-5 w-5" /> Marketplace
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start text-lg font-medium hover:bg-primary/10 hover:text-primary">
+                    <Users className="mr-3 h-5 w-5" /> Comunidades
+                  </Button>
+                  <Button variant="ghost" className="w-full justify-start text-lg font-medium hover:bg-primary/10 hover:text-primary">
+                    <Bookmark className="mr-3 h-5 w-5" /> Salvos
+                  </Button>
+                </CardContent>
+              </Card>
 
-                {/* Content Type Filters */}
-                <div className="bg-card rounded-2xl border border-border p-4">
-                  <h3 className="font-semibold text-foreground mb-4">Tipo de conteúdo</h3>
-                  <div className="space-y-2">
-                    {contentTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => setSelectedType(type.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all ${
-                          selectedType === type.id
-                            ? "bg-accent text-accent-foreground"
-                            : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                        }`}
-                      >
-                        {type.icon && <type.icon className="w-5 h-5" />}
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
+              {/* Filtros Rápidos */}
+              <div className="space-y-3">
+                <h3 className="px-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">Filtros</h3>
+                <div className="flex flex-wrap gap-2">
+                  {["Arte", "Música", "Codes", "3D", "Packs"].map((tag) => (
+                    <Badge key={tag} variant="secondary" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-3 py-1">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               </div>
-            </aside>
+            </div>
+          </aside>
 
-            {/* Main Feed */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Mobile Filters */}
-              <div className="lg:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {feedFilters.map((filter) => (
-                  <button
-                    key={filter.id}
-                    onClick={() => setSelectedFilter(filter.id)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                      selectedFilter === filter.id
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary text-muted-foreground"
-                    }`}
-                  >
-                    <filter.icon className="w-4 h-4" />
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
+          {/* --- Coluna Central (Feed) --- */}
+          <div className="lg:col-span-6 space-y-6">
+            
+            {/* Criar Post */}
+            <Card className="border-border shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex gap-4">
+                  <Avatar>
+                    <AvatarImage src="https://github.com/shadcn.png" />
+                    <AvatarFallback>EU</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-4">
+                    <Input 
+                      placeholder="O que você está criando hoje?" 
+                      className="border-none bg-secondary/30 focus-visible:ring-0 placeholder:text-muted-foreground"
+                    />
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-2">
+                        <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-primary">
+                          <ImageIcon className="h-5 w-5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-primary">
+                          <Video className="h-5 w-5" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="text-muted-foreground hover:text-primary">
+                          <ShoppingCart className="h-5 w-5" />
+                        </Button>
+                      </div>
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                        Publicar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Posts */}
-              {feedPosts.map((post) => (
-                <article 
-                  key={post.id} 
-                  className="bg-card rounded-2xl border border-border overflow-hidden hover:border-primary/30 transition-colors"
-                >
-                  {/* Author Header */}
-                  <div className="flex items-center justify-between p-4">
+            {/* Lista de Posts */}
+            {feedPosts.map((post) => (
+              <Card key={post.id} className="border-border shadow-sm overflow-hidden hover:border-primary/30 transition-all duration-300">
+                <div className="p-4">
+                  {/* Header do Post */}
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 border-2 border-primary/30">
+                      <Avatar className="h-10 w-10 border border-primary/20">
                         <AvatarImage src={post.avatar} />
-                        <AvatarFallback>{post.author[0].toUpperCase()}</AvatarFallback>
+                        <AvatarFallback>{post.author[0]}</AvatarFallback>
                       </Avatar>
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-foreground">{post.displayName}</p>
-                          {post.isVerified && (
-                            <Badge className="bg-primary/20 text-primary text-xs px-2">PRO</Badge>
-                          )}
+                          <span className="font-bold text-foreground">{post.displayName}</span>
+                          <span className="text-xs text-muted-foreground">@{post.author}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">@{post.author} · {post.time}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px] h-4 px-1 border-primary/30 text-primary">
+                            {post.role}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {post.time}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <button className="p-2 rounded-full hover:bg-secondary transition-colors">
-                      <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-                    </button>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                    </Button>
                   </div>
 
-                  {/* Content */}
-                  <p className="px-4 pb-4 text-foreground whitespace-pre-line">{post.content}</p>
+                  {/* Conteúdo Texto */}
+                  <p className="text-foreground/90 leading-relaxed mb-4 whitespace-pre-wrap font-sans">
+                    {post.content}
+                  </p>
 
-                  {/* Image */}
-                  <div className="relative aspect-video">
-                    <img 
-                      src={post.image} 
-                      alt="Post"
-                      className="w-full h-full object-cover"
-                    />
-                    {post.hasProduct && (
-                      <div className="absolute bottom-4 right-4">
-                        <Button size="sm" className="bg-primary/90 backdrop-blur-sm hover:bg-primary text-primary-foreground">
-                          Comprar R${post.productPrice}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                  {/* Imagem do Post (se houver) */}
+                  {post.image && (
+                    <div className="relative rounded-xl overflow-hidden mb-4 border border-border">
+                      <img 
+                        src={post.image} 
+                        alt="Conteúdo do post" 
+                        className="w-full h-auto object-cover max-h-[500px]"
+                      />
+                      
+                      {/* CARD DE PRODUTO SOBRE A IMAGEM (Estilo Packzin) */}
+                      {post.product.isSelling && (
+                        <div className="absolute bottom-4 left-4 right-4 bg-background/90 backdrop-blur-md p-3 rounded-lg border border-primary/20 shadow-lg flex items-center justify-between animate-in slide-in-from-bottom-2">
+                          <div>
+                            <p className="text-xs font-semibold text-primary uppercase mb-0.5">Produto Vinculado</p>
+                            <h4 className="font-bold text-sm text-foreground line-clamp-1">{post.product.title}</h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center text-yellow-500"><Star className="h-3 w-3 fill-current mr-1" /> {post.product.rating}</span>
+                              <span>•</span>
+                              <span>{post.product.sales} vendidos</span>
+                            </div>
+                          </div>
+                          <Button size="sm" className="bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20">
+                            Comprar R${post.product.price?.toFixed(2)}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                  {/* Actions */}
-                  <div className="flex items-center justify-between p-4 border-t border-border">
-                    <div className="flex items-center gap-6">
-                      <button 
+                  <Separator className="my-4" />
+
+                  {/* Ações */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-4">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className={`hover:text-red-500 hover:bg-red-500/10 gap-2 ${likedPosts.includes(post.id) ? "text-red-500" : "text-muted-foreground"}`}
                         onClick={() => toggleLike(post.id)}
-                        className={`flex items-center gap-2 transition-colors ${
-                          likedPosts.includes(post.id) 
-                            ? "text-accent" 
-                            : "text-muted-foreground hover:text-accent"
-                        }`}
                       >
-                        <Heart className={`w-5 h-5 ${likedPosts.includes(post.id) ? "fill-current" : ""}`} />
-                        <span className="text-sm">{likedPosts.includes(post.id) ? post.likes + 1 : post.likes}</span>
-                      </button>
-                      <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                        <MessageCircle className="w-5 h-5" />
-                        <span className="text-sm">{post.comments}</span>
-                      </button>
-                      <button className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors">
-                        <Share2 className="w-5 h-5" />
-                        <span className="text-sm">{post.shares}</span>
-                      </button>
+                        <Heart className={`h-5 w-5 ${likedPosts.includes(post.id) ? "fill-current" : ""}`} />
+                        {post.likes}
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary hover:bg-primary/10 gap-2">
+                        <MessageCircle className="h-5 w-5" />
+                        {post.comments}
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-green-500 hover:bg-green-500/10 gap-2">
+                        <Share2 className="h-5 w-5" />
+                      </Button>
                     </div>
-                    <button 
-                      onClick={() => toggleSave(post.id)}
-                      className={`p-2 rounded-full transition-colors ${
-                        savedPosts.includes(post.id)
-                          ? "text-primary"
-                          : "text-muted-foreground hover:text-primary"
-                      }`}
-                    >
-                      <Bookmark className={`w-5 h-5 ${savedPosts.includes(post.id) ? "fill-current" : ""}`} />
-                    </button>
-                  </div>
-                </article>
-              ))}
-
-              {/* Load More */}
-              <div className="text-center py-8">
-                <Button variant="outline" className="border-border bg-secondary/30 hover:bg-secondary">
-                  Carregar mais
-                </Button>
-              </div>
-            </div>
-
-            {/* Sidebar Right - Trending & Suggestions */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-24 space-y-6">
-                {/* Trending Topics */}
-                <div className="bg-card rounded-2xl border border-border p-4">
-                  <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-accent" />
-                    Em alta
-                  </h3>
-                  <div className="space-y-3">
-                    {trendingTopics.map((topic) => (
-                      <a 
-                        key={topic.tag}
-                        href="#"
-                        className="block p-3 rounded-xl hover:bg-secondary transition-colors"
-                      >
-                        <p className="font-medium text-primary">{topic.tag}</p>
-                        <p className="text-sm text-muted-foreground">{topic.posts} posts</p>
-                      </a>
-                    ))}
+                    
+                    <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
+                      <Bookmark className="h-5 w-5" />
+                    </Button>
                   </div>
                 </div>
+              </Card>
+            ))}
+          </div>
 
-                {/* Suggested Creators */}
-                <div className="bg-card rounded-2xl border border-border p-4">
-                  <h3 className="font-semibold text-foreground mb-4">Criadores sugeridos</h3>
+          {/* --- Sidebar Direita (Extras) --- */}
+          <aside className="hidden lg:block lg:col-span-3">
+            <div className="sticky top-24 space-y-6">
+              
+              {/* Trending Topics */}
+              <Card className="border-border bg-card shadow-sm">
+                <CardContent className="p-5">
+                  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-accent" /> Em Alta
+                  </h3>
                   <div className="space-y-4">
-                    {suggestedCreators.map((creator) => (
-                      <div key={creator.name} className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={creator.avatar} />
-                            <AvatarFallback>{creator.name[0].toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-medium text-foreground text-sm">@{creator.name}</p>
-                            <p className="text-xs text-muted-foreground">{creator.followers} seguidores</p>
-                          </div>
+                    {trendingTags.map((tag, idx) => (
+                      <div key={idx} className="group cursor-pointer">
+                        <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{tag}</p>
+                        <p className="text-xs text-muted-foreground">2.4k posts hoje</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Sugestões de Criadores */}
+              <Card className="border-border bg-gradient-to-br from-card to-secondary/10 shadow-sm">
+                <CardContent className="p-5">
+                  <h3 className="font-bold text-lg mb-4">Criadores em Destaque</h3>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=creator${i}`} />
+                          <AvatarFallback>CR</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                          <p className="text-sm font-semibold truncate">Pixel Master</p>
+                          <p className="text-xs text-muted-foreground truncate">Pixel Art & Assets</p>
                         </div>
-                        <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                        <Button size="sm" variant="outline" className="h-8 px-2 border-primary/50 text-primary hover:bg-primary hover:text-white">
                           Seguir
                         </Button>
                       </div>
                     ))}
                   </div>
+                </CardContent>
+              </Card>
+
+              <div className="text-xs text-muted-foreground text-center">
+                <p>© 2024 GeekNector. Feito com 💜 para criadores.</p>
+                <div className="flex justify-center gap-2 mt-2">
+                  <a href="#" className="hover:underline">Termos</a>
+                  <a href="#" className="hover:underline">Privacidade</a>
                 </div>
               </div>
-            </aside>
-          </div>
+
+            </div>
+          </aside>
+
         </div>
       </main>
       <Footer />
